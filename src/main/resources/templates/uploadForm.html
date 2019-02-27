@@ -1,0 +1,62 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title></title>
+	<script language="JavaScript"></script>
+</head>
+<body>
+
+	<div th:if="${message}">
+		<h2 th:text="${message}"/>
+	</div>
+
+	<div>
+			<form id="file-upload" method="POST" enctype="multipart/form-data" action="/">
+				<tr><td></td><td><input type="radio" onclick="handleCheck(this);" name="radioWord" value="bword" checked="checked"/> 금칙어 파일
+				<tr><td></td><td><input type="radio" onclick="handleCheck(this);" name="radioWord" value="wword"/>화이트 리스트 파일</td></tr>
+				<table>
+					<tr><td>File to upload:</td><td><input type="file" name="file"/></td></tr>
+					<tr><td><button class="requestFile" type="submit" id="upload-file"/>업로드</td></tr>
+				</table>
+
+				<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+				<script type="text/javascript">
+					var currentValue = "bword";
+					function handleCheck(myWord) {
+						alert(myWord.value +"가 선택되었습니다");
+						currentValue = myWord.value;
+					}
+
+				</script>
+			</form>
+	</div>
+
+	<div>
+		<!--<ul>-->
+			<!--<li th:each="file : ${files}">-->
+				<!--<a th:href="${file}" th:text="${file}" />-->
+			<!--</li>-->
+		<!--</ul>-->
+
+		<!--
+		<form id="bRequest" method="POST">
+			<div class="bword_text">
+				입력<input class="frontforms" name="bwordRequest" id="bword" value="bword" type="text" autocomplete="off"/>
+			</div>
+			<hr>
+			<button class="brequestBtn" type="submit" id="search-bword">결과보기</button>
+		</form>
+
+		<form id="bWhite" method="POST">
+			<div class="wword_text">
+				화이트 <input class="frontforms" name="whiteRequest" id="wword" value="wword" type="text" autocomplete="off"/>
+			</div>
+			<hr>
+			<button class="wrequestBtn" type="submit" id="search-wword">결과 보기</button>
+		</form>
+	</div>
+
+	<script src="js/launch.js" charset="utf-8"></script>
+	<script src="js/do.js" charset="utf-8"></script>
+	-->
+</body>
+</html>

@@ -1,0 +1,13 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password:
+
+server:
+  port: 8081
