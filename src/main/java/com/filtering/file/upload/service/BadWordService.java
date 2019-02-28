@@ -34,67 +34,12 @@ public class BadWordService {
     private boolean inited = false;
     private int MAX_VALUE = 10;
 
-    @PostConstruct
-    public void init() {
-//        logger.info("==================== white list 생성 중 =======================");
-//        this.whiteList = this.redisStorageService.getWhiteList();
-//
-//        if(this.whiteList.isEmpty())
-//            this.whiteList = this.makeWhiteListWithoutRedis();
-//        logger.info("==================== white list 생성 완료 =====================");
-    }
 
     public void initMap() {
         this.badWordList_two = new HashMap<>();
         this.badWordList_three = new HashMap<>();
         this.badWordList_four = new HashMap<>();
         this.badWordList_more = new HashMap<>();
-    }
-
-    public void deleteMap() {
-        this.badWordList_two = null;
-        this.badWordList_three = null;
-        this.badWordList_four = null;
-        this.badWordList_more = null;
-    }
-
-    /**
-     * if redis set(white_list) has no data:
-     * 파일로부터 읽어들여 처리
-     */
-    public Set<String> makeWhiteListWithoutRedis() {
-
-        StringTokenizer st = Optional.ofNullable(this.getTokenizedStringFromFile("whiteList"))
-                                        .orElseThrow(FileEmptyException::new);
-
-        Set<String> whiteList = new HashSet<>();
-
-        while(st.hasMoreTokens()) {
-            whiteList.add(st.nextToken());
-        }
-        return whiteList;
-    }
-
-    /**
-     * redis connection 오류시 사용될 대처방안:
-     * 파일로부터 읽어들여 처리
-     */
-    public void makeBWordWithoutRedis() {
-
-        StringTokenizer st = Optional.ofNullable(this.getTokenizedStringFromFile("bwordList"))
-                                        .orElseThrow(FileEmptyException::new);
-
-        if((this.badWordList_two == null && this.badWordList_three == null
-                && this.badWordList_four == null && this.badWordList_more == null)) {
-
-            logger.info("==================== word list 생성 중 =======================");
-            this.initMap();
-            while (st.hasMoreTokens()) {
-                String value = st.nextToken();
-                this.validateWords(value);
-            }
-            logger.info("==================== word list 생성 완료 ====================");
-        }
     }
 
     /**

@@ -7,16 +7,7 @@ public class ExcelReadOption {
 
     private String filePath;
     private List<String> outputColumns;
-
     private int startRow;
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
 
     public List<String> getOutputColumns() {
         List<String> temp = new ArrayList<>();
@@ -25,20 +16,16 @@ public class ExcelReadOption {
     }
 
     public void setOutputColumns(List<String> outputColumns) {
-        List<String> temp = new ArrayList<>();
-        temp.addAll(outputColumns);
-        this.outputColumns = temp;
+        if(!outputColumns.isEmpty())
+            this.outputColumns = outputColumns;
     }
 
     public void setOutputColumns(String ... outputColumns) {
-
-        if(this.outputColumns == null) {
+        if(this.outputColumns == null)
             this.outputColumns = new ArrayList<String>();
-        }
 
-        for(String ouputColumn : outputColumns) {
+        for(String ouputColumn : outputColumns)
             this.outputColumns.add(ouputColumn);
-        }
     }
 
     public int getStartRow() {
@@ -47,6 +34,10 @@ public class ExcelReadOption {
     public void setStartRow(int startRow) {
         this.startRow = startRow;
     }
-
-
+    public String getFilePath() {
+        return filePath;
+    }
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 }

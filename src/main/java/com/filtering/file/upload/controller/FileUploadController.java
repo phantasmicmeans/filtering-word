@@ -1,6 +1,7 @@
 package com.filtering.file.upload.controller;
 
 import com.filtering.file.upload.redis.RedisStorageService;
+import com.filtering.file.upload.storage.StorageException;
 import com.filtering.file.upload.storage.StorageFileNotFoundException;
 import com.filtering.file.upload.storage.StorageService;
 import org.slf4j.Logger;
@@ -16,10 +17,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 @Controller
 public class FileUploadController {
@@ -40,8 +40,8 @@ public class FileUploadController {
     public String listUploadedFiles(/*Model model*/) throws IOException {
 
 
-        storageService.deleteAll();
-        storageService.init();
+        this.storageService.deleteAll();
+        this.storageService.init();
 //        Stream<Path> pathStream = storageService.loadAll();
 //
 //        model.addAttribute("files", storageService.loadAll().map(
@@ -56,7 +56,7 @@ public class FileUploadController {
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
 
-        Resource file = storageService.loadAsResource(filename);
+        Resource file = this.storageService.loadAsResource(filename);
         logger.info("file :" + file.getFilename());
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
@@ -64,35 +64,28 @@ public class FileUploadController {
     }
 
     @PostMapping("/")
-    public String handleFileUpload(@RequestParam("radioWord") String whichWord, @RequestParam("file") MultipartFile file,
+    public String handleFileUpload(@RequestParam("radioWord") String radioWord, @RequestParam("file") MultipartFile file,
                                    RedirectAttributes redirectAttributes) {
 
-        logger.info("upload - start");
-        logger.info(file.getOriginalFilename());
-
         String filename = file.getOriginalFilename();
-        storageService.store(file);
+        this.storageService.store(file);
 
-        List<String> fileWords = null;
+        List<String> fileContents = null;
+
         if (filename.toUpperCase().endsWith(".XLS") || filename.toUpperCase().endsWith(".XLSX")) {
-
-            Path path = storageService.load(filename);
-            fileWords = storageService.excelUpload(path);
-
-            if (whichWord.equals("bword"))
-                this.redisStorageService.putBWordList(fileWords);
-            else //whichWord = "wword"
-                this.redisStorageService.putWhiteList(fileWords);
-
-        }else {
-            fileWords = this.storageService.getLines(file.getOriginalFilename());
-
-            if (whichWord.equals("bword"))
-                this.redisStorageService.putBWordList(fileWords);
-            else //whichWord = "wword"
-                this.redisStorageService.putWhiteList(fileWords);
-
+            Path path = this.storageService.load(filename);
+            fileContents = this.storageService.excelUpload(path);
         }
+        else if(filename.endsWith("TXT"))
+            fileContents = this.storageService.getLines(file.getOriginalFilename());
+        else
+            throw new StorageException("지원하지 않는 파일 형식입니다.");
+
+        if (radioWord.equals("bword"))
+            this.redisStorageService.putBWordList(fileContents);
+        else if(radioWord.equals("wword"))
+            this.redisStorageService.putWhiteList(fileContents);
+
         redirectAttributes.addFlashAttribute("message",
                 "You successfully uploaded " + file.getOriginalFilename() + "!");
 

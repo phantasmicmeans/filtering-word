@@ -41,7 +41,6 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void store(MultipartFile file) {
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
-        logger.info("filename :" +filename);
 
         try {
             if (file.isEmpty()) {
@@ -50,9 +49,9 @@ public class FileSystemStorageService implements StorageService {
             if (filename.contains("..")) {
                 // This is a security check
                 throw new StorageException(
-                        "Cannot store file with relative path outside current directory "
-                                + filename);
+                        "Cannot store file with relative path outside current directory " + filename);
             }
+
             if (filename.toUpperCase().endsWith(".XLS") || filename.toUpperCase().endsWith(".XLSX")) {
                 logger.info("excel");
                 try {
@@ -63,7 +62,6 @@ public class FileSystemStorageService implements StorageService {
                     System.out.println(e.getMessage() );
                 }
             } else {
-
                 try (InputStream inputStream = file.getInputStream()) {
                     Files.copy(inputStream, this.rootLocation.resolve(filename),
                             StandardCopyOption.REPLACE_EXISTING);
@@ -83,16 +81,15 @@ public class FileSystemStorageService implements StorageService {
         ExcelReadOption excelReadOption = new ExcelReadOption();
         excelReadOption.setFilePath(destFile.getAbsolutePath());
         excelReadOption.setOutputColumns("A","B");
-        excelReadOption.setStartRow(2);
+        excelReadOption.setStartRow(1);
 
-        List<Map<String,String>> excelContent = ExcelRead.read(excelReadOption);
+        List<Map<String,String>> excelContents = ExcelRead.read(excelReadOption);
+        List<String> excelContent = new ArrayList<>();
 
-        List<String> toRedisList = new ArrayList<>();
+        for(Map<String,String> article : excelContents)
+            excelContent.add(article.get("A"));
 
-        for(Map<String,String> article : excelContent)
-            toRedisList.add(article.get("A"));
-
-        return toRedisList;
+        return excelContent;
 
     }
 
@@ -143,9 +140,8 @@ public class FileSystemStorageService implements StorageService {
             Stream<String> lines = Files.lines(file);
             retData = lines.collect(Collectors.toList());
         }catch(Throwable e) {
-            logger.info(e.getMessage());
+            throw new StorageException(e.getMessage(), e.getCause());
         }
-
         return retData;
     }
 
