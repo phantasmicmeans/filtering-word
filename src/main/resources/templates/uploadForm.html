@@ -4,7 +4,7 @@
 	<script language="JavaScript"></script>
 </head>
 <body>
-
+	지원 가능 파일 확장자 : [.txt, .xls, .xlsx]
 	<div th:if="${message}">
 		<h2 th:text="${message}"/>
 	</div>
@@ -25,38 +25,8 @@
 						alert(myWord.value +"가 선택되었습니다");
 						currentValue = myWord.value;
 					}
-
 				</script>
 			</form>
 	</div>
-
-	<div>
-		<!--<ul>-->
-			<!--<li th:each="file : ${files}">-->
-				<!--<a th:href="${file}" th:text="${file}" />-->
-			<!--</li>-->
-		<!--</ul>-->
-
-		<!--
-		<form id="bRequest" method="POST">
-			<div class="bword_text">
-				입력<input class="frontforms" name="bwordRequest" id="bword" value="bword" type="text" autocomplete="off"/>
-			</div>
-			<hr>
-			<button class="brequestBtn" type="submit" id="search-bword">결과보기</button>
-		</form>
-
-		<form id="bWhite" method="POST">
-			<div class="wword_text">
-				화이트 <input class="frontforms" name="whiteRequest" id="wword" value="wword" type="text" autocomplete="off"/>
-			</div>
-			<hr>
-			<button class="wrequestBtn" type="submit" id="search-wword">결과 보기</button>
-		</form>
-	</div>
-
-	<script src="js/launch.js" charset="utf-8"></script>
-	<script src="js/do.js" charset="utf-8"></script>
-	-->
 </body>
 </html>
