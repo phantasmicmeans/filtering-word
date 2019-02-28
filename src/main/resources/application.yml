@@ -4,9 +4,14 @@ spring:
       max-file-size: 1MB
       max-request-size: 1MB
 
+  mvc:
+    contentnegotiation:
+      favor-parameter: true
+      favor-path-extension: true
+
 redis:
-  host: 127.0.0.1
-  port: 6379
+  host: 192.168.1.19
+  port: 7001
   password:
 
 server:

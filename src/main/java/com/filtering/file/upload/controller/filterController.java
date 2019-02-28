@@ -8,20 +8,30 @@ import com.filtering.file.upload.exception.DataNullException;
 import com.filtering.file.upload.redis.RedisStorageService;
 import com.filtering.file.upload.service.BadWordService;
 import com.filtering.file.upload.service.FilterService;
+import com.filtering.file.upload.utils.ExcelRead;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.InputStreamSource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin("*")
 public class filterController {
 
     @Autowired
@@ -212,6 +222,26 @@ public class filterController {
         }
     }
 
+
+    @GetMapping("/download/{type}")
+    public ResponseEntity getExcelFile(@PathVariable("type") String type) throws IOException
+    {//type = bword, wword
+
+        String wordType = this.reqValidator.validateType(type);
+        List<String> wordList = this.redisStorageService.getWordList(wordType);
+
+        File excelFile = ExcelRead.downloadFile(wordList, wordType);
+        MediaType mediatype= MediaType.parseMediaType("application/vnd.ms-excel");
+
+        InputStreamSource resource = new InputStreamResource(new FileInputStream(excelFile));
+
+        Files.delete(excelFile.toPath());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + wordType +".xlsx")
+                .contentType(mediatype)
+                .body(resource);
+    }
 
     /**
      * 금칙어 to Redis default 값들 저장.

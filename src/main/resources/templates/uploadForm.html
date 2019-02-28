@@ -4,11 +4,11 @@
 	<script language="JavaScript"></script>
 </head>
 <body>
-	지원 가능 파일 확장자 : [.txt, .xls, .xlsx]
-	<div th:if="${message}">
-		<h2 th:text="${message}"/>
+	<div>
+		<p>
+		지원 가능 파일 확장자 : [.txt, .xls, .xlsx]
+		</p>
 	</div>
-
 	<div>
 			<form id="file-upload" method="POST" enctype="multipart/form-data" action="/">
 				<tr><td></td><td><input type="radio" onclick="handleCheck(this);" name="radioWord" value="bword" checked="checked"/> 금칙어 파일
@@ -28,5 +28,20 @@
 				</script>
 			</form>
 	</div>
+
+	<div>
+		<a href="http://192.168.1.30:8081/download/bword"> 금칙어 다운로드 </a>
+		<br>
+	</div>
+	<div>
+		<a href="http://127.0.0.1:8081/download/wword"> 화이트 리스트 </a>
+	</div>
+
+    <div>
+        <div th:if="${message}">
+            <h2 th:text="${message}"/>
+        </div>
+    </div>
+
 </body>
 </html>

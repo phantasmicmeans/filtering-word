@@ -5,8 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 @Service
@@ -85,9 +90,29 @@ public class RedisStorageService {
         else return "bword_more";
     }
 
+    public List<String> getWordList(String type) {
+        return type.equals("bword") ? this.getBWordList() : this.getWhiteList();
+    }
 
-    public Set<String> getWhiteList () {
-        return this.redisTemplate.opsForSet().members("white_list");
+    public List <String> getWhiteList () {
+        List<String> whiteList = this.redisTemplate.opsForSet().members("white_list")
+                                             .stream().collect(Collectors.toList());
+        Collections.sort(whiteList);
+        return whiteList;
+    }
+
+    public List<String> getBWordList() {
+
+        List<String> bword_key = Stream.of("bword_two","bword_three","bword_four","bword_more").collect(Collectors.toList());
+        List<String> retResult = new ArrayList<>();
+
+        IntStream.range(0,bword_key.size())
+                            .forEach(idx -> {
+                                Set<String> bword = this.redisTemplate.opsForSet().members(bword_key.get(idx));
+                                bword.forEach(retResult::add);
+                            });
+        Collections.sort(retResult);
+        return retResult;
     }
 
     public boolean isExistsInWhiteList(String bword) {

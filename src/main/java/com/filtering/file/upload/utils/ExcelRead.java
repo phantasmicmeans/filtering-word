@@ -1,10 +1,15 @@
 package com.filtering.file.upload.utils;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +33,6 @@ public class ExcelRead {
         List<Map<String, String>> result = new ArrayList<>();
 
         for(int rowIndex = excelReadOption.getStartRow() -1; rowIndex < numOfRows; rowIndex ++) {
-            //워크북에서 가져온 시트에서 rowIndex에 해당하는 Row를 가져온다.
-            //하나의 Row는 여러개의 Cell을 가진다.
 
             row = sheet.getRow(rowIndex);
             if(row != null) {
@@ -47,6 +50,31 @@ public class ExcelRead {
             }
         }
         return result;
+    }
+
+    public static File downloadFile(List<String> wordList, String wordType) throws IOException {
+
+        Workbook wb = new XSSFWorkbook();
+        Sheet sheet = wb.createSheet(wordType); //type에 따라 sheet 만들고
+        Row row = null;
+        Cell cell = null;
+        int numOfRows = 0;
+
+        for(String word: wordList) {
+            row = sheet.createRow(numOfRows++);
+            cell = row.createCell(0);
+            cell.setCellValue(word);
+        }
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        wb.write(bos);
+        bos.close();
+
+        byte [] excelContent = bos.toByteArray();
+        File excelFile = new File("upload-dir/excel.xlsx");
+        FileUtils.writeByteArrayToFile(excelFile, excelContent);
+
+        return excelFile;
     }
 }
 

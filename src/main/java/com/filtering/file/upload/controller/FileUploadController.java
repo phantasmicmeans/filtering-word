@@ -9,17 +9,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 public class FileUploadController {
@@ -32,6 +31,9 @@ public class FileUploadController {
     private RedisStorageService redisStorageService;
 
     @Autowired
+    private reqValidator reqValidator;
+
+    @Autowired
     public FileUploadController(StorageService storageService) {
         this.storageService = storageService;
     }
@@ -39,16 +41,8 @@ public class FileUploadController {
     @GetMapping("/")
     public String listUploadedFiles(/*Model model*/) throws IOException {
 
-
         this.storageService.deleteAll();
         this.storageService.init();
-//        Stream<Path> pathStream = storageService.loadAll();
-//
-//        model.addAttribute("files", storageService.loadAll().map(
-//                path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
-//                        "serveFile", path.getFileName().toString()).build().toString())
-//                .collect(Collectors.toList()));
-
         return "uploadForm";
     }
 
@@ -87,10 +81,11 @@ public class FileUploadController {
             this.redisStorageService.putWhiteList(fileContents);
 
         redirectAttributes.addFlashAttribute("message",
-                "You successfully uploaded " + file.getOriginalFilename() + "!");
+                 file.getOriginalFilename() + "업로드에 성공하였습니다. " + "!");
 
         return "redirect:/";
     }
+
 
     @ExceptionHandler(StorageFileNotFoundException.class)
     public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
