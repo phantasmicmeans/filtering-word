@@ -9,6 +9,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
@@ -29,10 +30,18 @@ public class BadWordService {
     private HashMap<String, String> badWordList_three;
     private HashMap<String, String> badWordList_four;
     private HashMap<String, String> badWordList_more;
-    private Set<String> whiteList = null;
+    private List<String> whiteList = null;
     private boolean inited = false;
     private int MAX_VALUE = 10;
 
+    @PostConstruct
+    public void init() {
+        logger.info("==================== white list 생성 중 =======================");
+        this.whiteList = this.redisStorageService.getWhiteList();
+        if(this.whiteList.isEmpty())
+            this.whiteList = this.makeWhiteListWithoutRedis();
+        logger.info("==================== white list 생성 완료 =====================");
+    }
 
     public void initMap() {
         this.badWordList_two = new HashMap<>();
@@ -41,11 +50,30 @@ public class BadWordService {
         this.badWordList_more = new HashMap<>();
     }
 
+    public void deleteMap() {
+        this.badWordList_two = null;
+        this.badWordList_four = null;
+        this.badWordList_three = null;
+        this.badWordList_more = null;
+    }
+
+    /**
+     * if redis set(white_list) has no data:
+     * 파일로부터 읽어들여 처리
+     */
+    public List<String> makeWhiteListWithoutRedis() {
+        StringTokenizer st = Optional.ofNullable(this.getTokenizedStringFromFile("whiteList"))
+                                        .orElseThrow(FileEmptyException::new);
+        List<String> whiteList = new ArrayList<>();
+        while(st.hasMoreTokens())
+            whiteList.add(st.nextToken());
+        return whiteList;
+    }
+
     /**
      * file to redis 저장.
      */
     public void makeBWordListToRedis() {
-
         StringTokenizer st = Optional.ofNullable(this.getTokenizedStringFromFile("bwordList"))
                                         .orElseThrow(FileEmptyException::new);
 
@@ -72,7 +100,6 @@ public class BadWordService {
      */
     public void validateWords(String bword) {
         String key = this.toBinary(bword);
-
         if(bword.length() == 2 )  this.badWordList_two.put(key, bword);
         else if(bword.length() == 3) this.badWordList_three.put(key, bword);
         else if(bword.length() == 4) this.badWordList_four.put(key, bword);
@@ -80,7 +107,6 @@ public class BadWordService {
             this.badWordList_more.put(key, bword);
             this.MAX_VALUE = Math.max(this.MAX_VALUE, bword.length());
         }
-
     }
 
     /**
@@ -89,19 +115,14 @@ public class BadWordService {
      * @return
      */
     public boolean search(String bword) {
-
-        if(bword.length() == 2 && this.getBadWordList_two().containsKey(toBinary(bword))) {
+        if(bword.length() == 2 && this.getBadWordList_two().containsKey(toBinary(bword)))
             return true;
-        }
-        else if(bword.length() == 3 && this.getBadWordList_three().containsKey(toBinary(bword))) {
+        else if(bword.length() == 3 && this.getBadWordList_three().containsKey(toBinary(bword)))
             return true;
-        }
-        else if(bword.length() == 4 && this.getBadWordList_four().containsKey(toBinary(bword))) {
+        else if(bword.length() == 4 && this.getBadWordList_four().containsKey(toBinary(bword)))
             return true;
-        }
-        else {
+        else
             return this.getBadWordList_more().containsKey(toBinary(bword));
-        }
     }
 
     /**
@@ -109,15 +130,12 @@ public class BadWordService {
      * @return sb
      */
     public StringBuilder readFromFileBWord(String which_file) {
-
         StringBuilder sb = new StringBuilder();
-
         try{
             String data = "";
-
-            if(which_file == "bwordList")
+            if(which_file.equals("bwordList"))
                 data = "data/*";
-            else if(which_file == "whiteList")
+            else if(which_file.equals("whiteList"))
                 data = "whiteList/*";
             else throw new FileNotFoundException();
 
@@ -127,14 +145,13 @@ public class BadWordService {
             if(resources == null || resources.length == 0)
                 logger.info("cannot find any files");
             else {
-                for(Resource resource : resources) {
+                for (Resource resource : resources) {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
                     String line = null;
                     while ((line = bufferedReader.readLine()) != null)
-                        sb.append(line +",");
+                        sb.append(line + ",");
                     bufferedReader.close();
                 }
-
             }
         }catch(Throwable e) {
             logger.info("error Message : " + e.getMessage());
@@ -148,19 +165,16 @@ public class BadWordService {
      * @return
      */
     public String toBinary(String bword) { //String to binary
-
         byte [] bytes = bword.getBytes();
         StringBuilder binary = new StringBuilder();
 
         for(byte b : bytes) {
-
             int val = b;
             for(int i = 0; i < 8; i++) {
                 binary.append((val & 128) == 0 ? 0 : 1);
                 val <<= 1;
             }
             binary.append(' ');
-
         }
         return binary.toString();
     }
@@ -179,7 +193,7 @@ public class BadWordService {
 
     public HashMap<String, String> getBadWordList_more() { return badWordList_more; }
 
-    public Set<String> getWhiteList() { return whiteList; }
+    public List<String> getWhiteList() { return whiteList; }
 
-    public void setWhiteList(Set<String> whiteList) { this.whiteList = whiteList; }
+    public void setWhiteList(List<String> whiteList) { this.whiteList = whiteList; }
 }

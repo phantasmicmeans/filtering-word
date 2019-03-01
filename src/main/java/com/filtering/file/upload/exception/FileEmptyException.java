@@ -9,5 +9,4 @@ public class FileEmptyException extends RuntimeException {
     private static final String message = "파일이 비어있습니다.";
 
     public FileEmptyException() { super(message); }
-
 }

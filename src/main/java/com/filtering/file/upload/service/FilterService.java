@@ -22,31 +22,16 @@ public class FilterService {
     @Autowired
     private BadWordService badWordService;
 
-    public StringBuilder Tokenize(String ipt) {
-
-        StringTokenizer st = new StringTokenizer(ipt," ");
-        StringBuilder sb = new StringBuilder();
-
-        while(st.hasMoreTokens()) {
-            String token = st.nextToken();
-            sb.append(token);
-        }
-
-        return sb;
-    }
-
     /**
      * String to Binary-String
      * @param ipt
      * @return
      */
     public String toBinary(String ipt) { //String to binary
-
         byte [] bytes = ipt.getBytes();
         StringBuilder binary = new StringBuilder();
 
         for(byte b : bytes) {
-
             int val = b;
             for(int i = 0; i < 8; i++) {
                 binary.append((val & 128) == 0 ? 0 : 1);
@@ -64,7 +49,6 @@ public class FilterService {
      * @return
      */
     public boolean isMatchCharValue(char ipt, char ipt2) {
-
         String strA = Integer.toBinaryString(ipt);
         String strB = Integer.toBinaryString(ipt2);
         return (Integer.valueOf(strA) & Integer.valueOf(strB)) == Integer.valueOf(strA);
@@ -76,7 +60,6 @@ public class FilterService {
      * @return
      */
     public boolean isBadWord(String ipt) {
-
         int len  = ipt.length();
         int MAX_VALUE = this.badWordService.getMAX_VALUE(); //욕 최대 길이
 
@@ -87,7 +70,6 @@ public class FilterService {
 
             for(int k = i; k < i + n; k++) {
                 //금칙어 최대 길이를 넘어가거나, indexOutOfBound
-
                 int end = k + 1;
 
                 if(n > MAX_VALUE || k > len - 1) break;
@@ -103,7 +85,6 @@ public class FilterService {
 
                     if(this.redisStorageService.isExistsBWord(compare_str)) {
                         String whole_str = ipt.substring(0, end);
-
                         if(!isWhiteList(whole_str)) //if ipt is not in WhiteList
                             return true;
                     }
@@ -117,7 +98,6 @@ public class FilterService {
 
                     if(this.redisStorageService.isExistsBWord(compare_str)) {
                         String whole_str = ipt.substring(0, end);
-
                         if(!isWhiteList(whole_str))
                             return true;
                     }
@@ -204,14 +184,12 @@ public class FilterService {
         return String.valueOf(ipt_charArray);
     }
 
-
     /**
      * 특수 케이스 판단 (18, 10, 69)
      * @param ipt_sb
      * @return
      */
     public boolean isBadWordNumber(String ipt_sb) {
-
         if(isNumber(ipt_sb)) {
             int ipt_sb_number = Integer.valueOf(ipt_sb);
             return (ipt_sb_number == 18 || ipt_sb_number == 10 || ipt_sb_number == 69) && ipt_sb.length() == 2;

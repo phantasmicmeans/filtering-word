@@ -1,30 +1,39 @@
 package com.filtering.file.upload.controller;
 
+import com.filtering.file.upload.exception.DataInvalidException;
 import com.filtering.file.upload.exception.DataNullException;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 @Component
 public class reqValidator {
 
-    private String[] word = {"bword","wword"};
+    private String[] words = {"bword","wword"};
     /**
      * request null check
      * @param request
      */
     public String validateRequest(String request) {
-
         if(!request.isEmpty()) return request;
-        else
+        else {
+            System.out.println("validation in");
             throw new DataNullException();
+        }
     }
 
+    /**
+     * type-check : type = wword/bword
+     * @param wordType
+     * @return
+     */
     public String validateType(String wordType) {
         this.validateRequest(wordType);
-
-        if(wordType.equals(word[0]))
-            return word[0];
+        if(Arrays.stream(words)
+                 .anyMatch(word -> word.equals(wordType)))
+            return wordType;
         else
-            return word[1];
+            throw new DataInvalidException();
     }
 
 }

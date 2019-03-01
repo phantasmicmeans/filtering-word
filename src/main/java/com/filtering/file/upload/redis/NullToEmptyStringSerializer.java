@@ -11,8 +11,6 @@ import java.io.IOException;
  * JSON Serializer 확장 클래스
  */
 public class NullToEmptyStringSerializer extends JsonSerializer<Object> {
-
-
     @Override
     public void serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         // null 처리

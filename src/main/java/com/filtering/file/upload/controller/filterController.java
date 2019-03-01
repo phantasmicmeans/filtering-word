@@ -50,8 +50,6 @@ public class filterController {
     RedisStorageService redisStorageService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-
     /**
      * filtering된 결과 return
      * @param request
@@ -120,16 +118,15 @@ public class filterController {
     @ApiOperation(value = "금칙어를 request로 받아, Redis에 저장")
     public ResponseEntity<?> saveBWord(@RequestBody RequestF request) {
         //TODO - Redis관련 Exception 정의 안되어있음.
-
         RequestF requestF = Optional.ofNullable(request)
                                 .orElseThrow(DataNullException::new);
-
         String bword = reqValidator.validateRequest(requestF.getRequestStr());
-
         this.redisStorageService.putBWord(bword);
-        URI location = ServletUriComponentsBuilder.fromCurrentServletMapping().path("v1/filter/redis/{request}")
-                                .build().expand(bword).toUri();
-
+        URI location = ServletUriComponentsBuilder.fromCurrentServletMapping()
+                                                    .path("v1/filter/redis/{request}")
+                                                    .build()
+                                                    .expand(bword)
+                                                    .toUri();
         return ResponseEntity.created(location).body(requestF);
     }
 
@@ -146,13 +143,11 @@ public class filterController {
                                     .orElseThrow(DataNullException::new);
 
         List<String> bwordList = requestB.getWordList();
-
         if (!bwordList.isEmpty()) {
             this.redisStorageService.putBWordList(bwordList);
             return new ResponseEntity<>("successfully created", HttpStatus.CREATED);
         } else
             throw new DataNullException();
-
     }
 
     /**
@@ -168,7 +163,6 @@ public class filterController {
                                     .orElseThrow(DataNullException::new);
 
         List<String> bwordList = requestB.getWordList();
-
         if(!bwordList.isEmpty()) {
             this.redisStorageService.removeBWordList(bwordList);
             return new ResponseEntity<>("successfully deleted", HttpStatus.OK);
@@ -190,7 +184,6 @@ public class filterController {
                                     .orElseThrow(DataNullException::new);
 
         List<String> whiteList = requestB.getWordList();
-
         if (!whiteList.isEmpty()) {
             this.redisStorageService.putWhiteList(whiteList);
             return new ResponseEntity<>("successfully created", HttpStatus.CREATED);
@@ -213,7 +206,6 @@ public class filterController {
                                 .orElseThrow(DataNullException::new);
 
         List<String> whiteList = requestB.getWordList();
-
         if(!whiteList.isEmpty()) {
             this.redisStorageService.removeWhiteList(whiteList);
             return new ResponseEntity<>("successfully deleted", HttpStatus.OK);
@@ -222,19 +214,22 @@ public class filterController {
         }
     }
 
-
+    /**
+     * 금칙어/화이트 리스트를 type으로 받아, redis 데이터 ->  엑셀파일로 다운로드.
+     * @param type = bword(badword) | wword(whiteword)
+     * @return
+     * @throws IOException
+     */
     @GetMapping("/download/{type}")
-    public ResponseEntity getExcelFile(@PathVariable("type") String type) throws IOException
-    {//type = bword, wword
+    public ResponseEntity getExcelFile(@PathVariable("type") String type) throws IOException {
 
         String wordType = this.reqValidator.validateType(type);
         List<String> wordList = this.redisStorageService.getWordList(wordType);
 
         File excelFile = ExcelRead.downloadFile(wordList, wordType);
+
         MediaType mediatype= MediaType.parseMediaType("application/vnd.ms-excel");
-
         InputStreamSource resource = new InputStreamResource(new FileInputStream(excelFile));
-
         Files.delete(excelFile.toPath());
 
         return ResponseEntity.ok()

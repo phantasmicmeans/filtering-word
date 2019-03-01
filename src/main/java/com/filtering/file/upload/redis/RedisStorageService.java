@@ -1,22 +1,22 @@
 package com.filtering.file.upload.redis;
 
+import com.filtering.file.upload.service.BadWordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 
 @Service
 public class RedisStorageService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private BadWordService badWordService;
 
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -24,14 +24,13 @@ public class RedisStorageService {
         this.redisTemplate = redisTemplate;
     }
 
-
     public void putBWordList(List<String> bwordList) { //저장
         if(!bwordList.isEmpty()) {
             bwordList.forEach(this::putBWord);
         }
     }
 
-    public void putBWord(String bword) { //굼칙어 저장
+    public void putBWord(String bword) { //금칙어 저장
         if(!isExistsBWord(bword)) {
             String key = getBWordSetKey(bword);
             this.redisTemplate.opsForSet().add(key , bword);
@@ -60,6 +59,7 @@ public class RedisStorageService {
     public void putWhiteWord(String whiteWord) {
         if(!isExistsInWhiteList(whiteWord)) {
             this.redisTemplate.opsForSet().add("white_list", whiteWord);
+            this.badWordService.getWhiteList().add(whiteWord); //set -> not duplicate
         }
     }
 
@@ -71,19 +71,18 @@ public class RedisStorageService {
 
     public void removeWhiteWord(String whiteWord) {
         if(isExistsInWhiteList(whiteWord)) {
-            this.redisTemplate.opsForSet().remove("white_list", whiteWord);
+            if(this.badWordService.getWhiteList().contains(whiteWord))
+                this.badWordService.getWhiteList().remove(whiteWord);
+        this.redisTemplate.opsForSet().remove("white_list", whiteWord);
         }
     }
-
 
     public boolean isExistsBWord(String bword) {
         String key = getBWordSetKey(bword);
         return this.redisTemplate.opsForSet().isMember(key, bword);
     }
 
-
     public String getBWordSetKey(String bword) {
-
         if(bword.length() == 2) return "bword_two";
         else if(bword.length() == 3) return "bword_three";
         else if(bword.length() == 4) return "bword_four";
@@ -95,21 +94,23 @@ public class RedisStorageService {
     }
 
     public List <String> getWhiteList () {
-        List<String> whiteList = this.redisTemplate.opsForSet().members("white_list")
-                                             .stream().collect(Collectors.toList());
+        List<String> whiteList = this.redisTemplate.opsForSet()
+                                                .members("white_list")
+                                                .stream().collect(Collectors.toList());
         Collections.sort(whiteList);
         return whiteList;
     }
 
     public List<String> getBWordList() {
-
-        List<String> bword_key = Stream.of("bword_two","bword_three","bword_four","bword_more").collect(Collectors.toList());
+        String[] bword_key = {"bword_two", "bword_three","bword_four","bword_more"};
         List<String> retResult = new ArrayList<>();
 
-        IntStream.range(0,bword_key.size())
+        IntStream.range(0,bword_key.length)
                             .forEach(idx -> {
-                                Set<String> bword = this.redisTemplate.opsForSet().members(bword_key.get(idx));
-                                bword.forEach(retResult::add);
+                                Set<String> bword = this.redisTemplate.opsForSet().members(bword_key[idx]);
+                                if(bword != null && !bword.isEmpty())
+                                retResult.addAll(bword);
+//                                bword.forEach(retResult::add);
                             });
         Collections.sort(retResult);
         return retResult;

@@ -93,9 +93,7 @@ public class RedisConfig {
     public MappingJackson2HttpMessageConverter mappingJacksonHttpMessageConverter(ObjectMapper objectMapper) {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
         converter.setObjectMapper(objectMapper);
-
         return converter;
     }
 }
