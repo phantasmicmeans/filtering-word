@@ -110,7 +110,6 @@ public class RedisStorageService {
                                 Set<String> bword = this.redisTemplate.opsForSet().members(bword_key[idx]);
                                 if(bword != null && !bword.isEmpty())
                                 retResult.addAll(bword);
-//                                bword.forEach(retResult::add);
                             });
         Collections.sort(retResult);
         return retResult;

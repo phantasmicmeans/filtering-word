@@ -1,8 +1,8 @@
 package com.filtering.file.upload.controller;
 
 import com.filtering.file.upload.redis.RedisStorageService;
-import com.filtering.file.upload.storage.StorageException;
-import com.filtering.file.upload.storage.StorageFileNotFoundException;
+import com.filtering.file.upload.exception.StorageException;
+import com.filtering.file.upload.exception.StorageFileNotFoundException;
 import com.filtering.file.upload.storage.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,6 @@ public class FileUploadController {
 
     @GetMapping("/")
     public String listUploadedFiles(/*Model model*/) throws IOException {
-
         this.storageService.deleteAll();
         this.storageService.init();
         return "uploadForm";
@@ -75,17 +74,14 @@ public class FileUploadController {
         else
             throw new StorageException("지원하지 않는 파일 형식입니다.");
 
-        if (radioWord.equals("bword"))
-            this.redisStorageService.putBWordList(fileContents);
-        else if(radioWord.equals("wword"))
-            this.redisStorageService.putWhiteList(fileContents);
+        if (radioWord.equals("bword")) this.redisStorageService.putBWordList(fileContents);
+        else if(radioWord.equals("wword")) this.redisStorageService.putWhiteList(fileContents);
 
         redirectAttributes.addFlashAttribute("message",
                  file.getOriginalFilename() + "업로드에 성공하였습니다. " + "!");
 
         return "redirect:/";
     }
-
 
     @ExceptionHandler(StorageFileNotFoundException.class)
     public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {

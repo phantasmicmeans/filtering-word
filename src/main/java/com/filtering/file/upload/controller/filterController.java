@@ -5,9 +5,12 @@ import com.filtering.file.upload.data.RequestF;
 import com.filtering.file.upload.data.RequestWord;
 import com.filtering.file.upload.data.ResponseF;
 import com.filtering.file.upload.exception.DataNullException;
+import com.filtering.file.upload.exception.StorageException;
+import com.filtering.file.upload.exception.StorageFileNotFoundException;
 import com.filtering.file.upload.redis.RedisStorageService;
 import com.filtering.file.upload.service.BadWordService;
 import com.filtering.file.upload.service.FilterService;
+import com.filtering.file.upload.storage.StorageService;
 import com.filtering.file.upload.utils.ExcelRead;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -15,11 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.File;
@@ -48,6 +49,9 @@ public class filterController {
 
     @Autowired
     RedisStorageService redisStorageService;
+
+    @Autowired
+    private StorageService storageService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
@@ -250,6 +254,31 @@ public class filterController {
             logger.info(e.getMessage());
         }
         return new ResponseEntity(HttpStatus.CREATED);
+    }
+
+    @ApiOperation(value = "ex. http://192.168.1.30:8080", notes = "ATC서버, 이미지를 처리 후 response 반환")
+    @PostMapping("/upload/server/images")
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file, @RequestParam("str") String key) {
+
+        Optional.ofNullable(file).orElseThrow(()
+                -> new StorageFileNotFoundException("파일을 로드할 수 없습니다."));
+        logger.info(key);
+
+        String fileNameUpper = file.getOriginalFilename().toUpperCase(); //fileName
+        if(fileNameUpper.endsWith("PNG") || fileNameUpper.endsWith("JPG") || fileNameUpper.endsWith("JPEG")) {
+            this.storageService.store(file); //upload-dir storage에 저장 ->
+        }else
+            throw new StorageException("지원하지 않는 파일 형식입니다");
+
+        File imageFile = this.storageService.load(file.getOriginalFilename()).toFile(); //사용할 수 있게 변환
+        //TODO -> do something
+        String json_result = doSomething(imageFile, key);
+        return ResponseEntity.ok(json_result); //response 전송
+    }
+
+
+    private String doSomething(File file, String key) {
+        return file.getName() + key;
     }
 
 }

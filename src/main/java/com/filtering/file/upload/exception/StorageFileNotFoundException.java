@@ -1,4 +1,5 @@
-package com.filtering.file.upload.storage;
+package com.filtering.file.upload.exception;
+
 
 public class StorageFileNotFoundException extends StorageException {
 
